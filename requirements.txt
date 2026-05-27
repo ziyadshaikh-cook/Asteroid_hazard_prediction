@@ -1,0 +1,14 @@
+scikit-learn
+xgboost
+catboost
+imbalanced-learn
+pandas
+numpy
+matplotlib
+seaborn
+mlflow
+dagshub
+flask
+evidently
+requests
+python-dotenv
