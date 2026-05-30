@@ -250,3 +250,5 @@ data/
 Thumbs.db
 
 logs/
+
+catboost_info
