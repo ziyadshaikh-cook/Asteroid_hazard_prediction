@@ -45,7 +45,7 @@ class ModelTrainer:
                 n_estimators=100,
                 class_weight="balanced",
                 random_state=42,
-                n_jobs=-1,
+                n_jobs=1,
             )
 
             logging.info("Training Random Forest")
@@ -64,7 +64,7 @@ class ModelTrainer:
                 mlflow.log_metric("f1_score", f1)
                 mlflow.log_metric("recall", recall)
                 mlflow.log_metric("precision", precision)
-                mlflow.sklearn.log_model(model, "model")
+                
 
                 logging.info(f"F1: {f1} | Recall: {recall} | Precision: {precision}")
 
