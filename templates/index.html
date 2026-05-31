@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asteroid Hazard Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            min-height: 100vh;
+            background-image: url('/static/image.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 10, 40, 0.55);
+            z-index: 0;
+        }
+
+        .card {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 16px;
+            padding: 48px 44px;
+            width: 480px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .brand-dot {
+            width: 10px;
+            height: 10px;
+            background: #1a56db;
+            border-radius: 50%;
+        }
+
+        .brand-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1a56db;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #0d1b3e;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .description {
+            font-size: 13.5px;
+            color: #555;
+            margin-bottom: 28px;
+            line-height: 1.6;
+            border-left: 3px solid #1a56db;
+            padding-left: 12px;
+        }
+
+        .divider {
+            height: 1px;
+            background: #e8edf5;
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-hint {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 6px;
+        }
+
+        input[type="date"] {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid #d0d9ea;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #1a1a2e;
+            background: #f7f9fc;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="date"]:focus {
+            border-color: #1a56db;
+            background: #fff;
+        }
+
+        .limit-note {
+            font-size: 11.5px;
+            color: #888;
+            margin-top: 6px;
+            margin-bottom: 24px;
+        }
+
+        .limit-note span {
+            color: #1a56db;
+            font-weight: 600;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            background: #1a56db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            letter-spacing: 0.3px;
+        }
+
+        button:hover {
+            background: #1445b8;
+        }
+
+        .what-you-get {
+            margin-top: 22px;
+            background: #f0f4ff;
+            border-radius: 8px;
+            padding: 14px 16px;
+        }
+
+        .what-you-get p {
+            font-size: 12px;
+            color: #444;
+            line-height: 1.7;
+        }
+
+        .what-you-get strong {
+            color: #1a56db;
+        }
+
+        .error-box {
+            background: #fff0f0;
+            border: 1px solid #ffcccc;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <div class="card">
+        <div class="brand">
+            <div class="brand-dot"></div>
+            <span class="brand-text">Powered by NASA NeoWs API</span>
+        </div>
+
+        <h1>Asteroid Hazard Predictor</h1>
+
+        <p class="description">
+            Enter a date range to fetch real asteroids from NASA's live database
+            and predict which ones are potentially hazardous to Earth.
+        </p>
+
+        <div class="divider"></div>
+
+        {% if error %}
+        <div class="error-box">{{ error }}</div>
+        {% endif %}
+
+        <form action="/predict" method="POST">
+            <div class="input-group">
+                <label for="start_date">Start Date</label>
+                <div class="input-hint">NASA data is available from 1900 onwards</div>
+                <input type="date" id="start_date" name="start_date"
+                       min="1900-01-01" max="2200-01-01" required>
+            </div>
+
+            <div class="input-group">
+                <label for="end_date">End Date</label>
+                <div class="input-hint">Must be within 7 days of the start date</div>
+                <input type="date" id="end_date" name="end_date"
+                       min="1900-01-01" max="2200-01-01" required>
+            </div>
+
+            <p class="limit-note">
+                NASA API allows a maximum of <span>7 days</span> per request.
+                Larger ranges must be split into multiple queries.
+            </p>
+
+            <button type="submit">Fetch Asteroids and Predict</button>
+        </form>
+
+        <div class="what-you-get">
+            <p>
+                <strong>What you will get:</strong> A list of all asteroids that made
+                a close approach to Earth in your selected date range, with our ML model's
+                prediction on whether each one is potentially hazardous — based on
+                magnitude, size, velocity, and miss distance.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Auto set end date to 6 days after start date
+        document.getElementById('start_date').addEventListener('change', function () {
+            const start = new Date(this.value);
+            start.setDate(start.getDate() + 6);
+            const maxEnd = start.toISOString().split('T')[0];
+            document.getElementById('end_date').value = maxEnd;
+            document.getElementById('end_date').max = maxEnd;
+        });
+    </script>
+</body>
+</html>

@@ -252,3 +252,5 @@ Thumbs.db
 logs/
 
 catboost_info
+
+static/

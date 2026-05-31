@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Results</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            min-height: 100vh;
+            background-image: url('/static/image.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            padding: 40px 20px;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 10, 40, 0.55);
+            z-index: 0;
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .header-card {
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 14px;
+            padding: 28px 32px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .brand-dot {
+            width: 8px;
+            height: 8px;
+            background: #1a56db;
+            border-radius: 50%;
+        }
+
+        .brand-text {
+            font-size: 11px;
+            font-weight: 600;
+            color: #1a56db;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0d1b3e;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 12px;
+            padding: 20px 28px;
+            flex: 1;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .hazardous-num { color: #cc2200; }
+        .safe-num { color: #0a7a3c; }
+        .total-num { color: #1a56db; }
+
+        .legend-card {
+            background: rgba(240, 244, 255, 0.97);
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin-bottom: 20px;
+            font-size: 12.5px;
+            color: #444;
+            line-height: 1.7;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+
+        .legend-card strong {
+            color: #1a56db;
+        }
+
+        .table-card {
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+            margin-bottom: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead tr {
+            background: #1a56db;
+        }
+
+        th {
+            padding: 13px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 11px 16px;
+            font-size: 13px;
+            color: #2a2a3e;
+            border-bottom: 1px solid #eef0f5;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: #f5f7ff;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-hazardous {
+            background: #fff0ee;
+            color: #cc2200;
+            border: 1px solid #ffcccc;
+        }
+
+        .badge-safe {
+            background: #edfff5;
+            color: #0a7a3c;
+            border: 1px solid #b3f0d0;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 11px 28px;
+            background: #1a56db;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #1445b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <div class="content">
+
+        <div class="header-card">
+            <div class="brand">
+                <div class="brand-dot"></div>
+                <span class="brand-text">NASA NeoWs API — Live Data</span>
+            </div>
+            <h1>Asteroid Hazard Prediction Results</h1>
+            <p class="subtitle">
+                Showing asteroids that made close approaches to Earth
+                from <strong>{{ start_date }}</strong> to <strong>{{ end_date }}</strong>
+            </p>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="number total-num">{{ total }}</div>
+                <div class="label">Asteroids Analysed</div>
+            </div>
+            <div class="stat-card">
+                <div class="number hazardous-num">{{ hazardous_count }}</div>
+                <div class="label">Predicted Hazardous</div>
+            </div>
+            <div class="stat-card">
+                <div class="number safe-num">{{ safe_count }}</div>
+                <div class="label">Predicted Safe</div>
+            </div>
+        </div>
+
+        <div class="legend-card">
+            <strong>How to read this table:</strong>
+            Abs. Magnitude = brightness (lower = larger asteroid).
+            Diameter Max = estimated maximum size in kilometers.
+            Velocity = speed relative to Earth in km/h.
+            Miss Distance = how close it came to Earth in kilometers.
+            Prediction = our ML model's classification based on these four values.
+        </div>
+
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Asteroid Name</th>
+                        <th>Abs. Magnitude</th>
+                        <th>Diameter Max (km)</th>
+                        <th>Velocity (km/h)</th>
+                        <th>Miss Distance (km)</th>
+                        <th>Prediction</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in results %}
+                    <tr>
+                        <td>{{ row.name }}</td>
+                        <td>{{ row.absolute_magnitude }}</td>
+                        <td>{{ row.estimated_diameter_max }}</td>
+                        <td>{{ row.relative_velocity }}</td>
+                        <td>{{ row.miss_distance }}</td>
+                        <td>
+                            <span class="badge {{ 'badge-hazardous' if row.prediction == 'HAZARDOUS' else 'badge-safe' }}">
+                                {{ row.prediction }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <a href="/" class="back-btn">New Prediction</a>
+
+    </div>
+</body>
+</html>
