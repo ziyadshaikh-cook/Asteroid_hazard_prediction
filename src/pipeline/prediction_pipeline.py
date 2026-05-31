@@ -36,6 +36,25 @@ class PredictPipeline:
 
         except Exception as e:
             raise CustomException(e, sys)
+    
+    def predict_proba(self, features: pd.DataFrame):
+        try:
+            model = load_object(self.model_path)
+            preprocessor = load_object(self.preprocessor_path)
+
+            expected_cols = [
+                "absolute_magnitude",
+                "estimated_diameter_max",
+                "relative_velocity",
+                "miss_distance",
+            ]
+            features = features[expected_cols]
+            scaled = preprocessor.transform(features)
+            proba = model.predict_proba(scaled)[:, 1]  # probability of class 1 (hazardous)
+            return proba
+
+        except Exception as e:
+            raise CustomException(e, sys)
 
 
 class CustomData:

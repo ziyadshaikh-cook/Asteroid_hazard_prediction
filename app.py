@@ -43,9 +43,11 @@ def predict():
         # Run predictions
         pipeline = PredictPipeline()
         predictions = pipeline.predict(df_live)
+        probabilities = pipeline.predict_proba(df_live)
 
         # Build results
         df_live["prediction"] = ["HAZARDOUS" if p == 1 else "SAFE" for p in predictions]
+        df_live["hazard_probability"] = [f"{p*100:.1f}%" for p in probabilities]
         df_live["absolute_magnitude"] = df_live["absolute_magnitude"].round(2)
         df_live["estimated_diameter_max"] = df_live["estimated_diameter_max"].round(4)
         df_live["relative_velocity"] = df_live["relative_velocity"].round(2)

@@ -254,6 +254,7 @@
                         <th>Velocity (km/h)</th>
                         <th>Miss Distance (km)</th>
                         <th>Prediction</th>
+                        <th>Hazard Probability</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -269,6 +270,7 @@
                                 {{ row.prediction }}
                             </span>
                         </td>
+                        <td>{{ row.hazard_probability }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
