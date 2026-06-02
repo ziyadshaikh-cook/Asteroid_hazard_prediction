@@ -22,6 +22,13 @@ Enter a date range → the app fetches real asteroids from NASA's database → t
 | Data Source (Inference) | NASA NeoWs REST API (live) |
 
 ---
+## Screenshots
+
+### Home Page
+![Home](assets/home.png)
+
+### Prediction Results
+![Results](assets/results.png)
 
 ## What Makes This Project Different
 
@@ -92,17 +99,19 @@ Random Forest was selected — only model with Precision above 0.60, meaning it 
 ---
 
 ## Project Structure
+
+```
 asteroid_hazard_prediction/
 ├── src/
 │   ├── components/
-│   │   ├── data_ingestion.py       # CSV loader + NASA API fetch
-│   │   ├── data_transformation.py  # RobustScaler + SMOTE
-│   │   ├── model_trainer.py        # Random Forest + MLflow logging
-│   │   └── model_monitoring.py     # Evidently drift report
+│   │   ├── data_ingestion.py
+│   │   ├── data_transformation.py
+│   │   ├── model_trainer.py
+│   │   └── model_monitoring.py
 │   ├── pipeline/
-│   │   ├── training_pipeline.py    # Chains ingestion → transform → train
-│   │   ├── prediction_pipeline.py  # Loads model + preprocessor for inference
-│   │   └── monitoring_pipeline.py  # Runs drift detection
+│   │   ├── training_pipeline.py
+│   │   ├── prediction_pipeline.py
+│   │   └── monitoring_pipeline.py
 │   ├── logger.py
 │   ├── exception.py
 │   └── utils.py
@@ -112,12 +121,11 @@ asteroid_hazard_prediction/
 ├── templates/
 │   ├── index.html
 │   └── results.html
-├── app.py                          # Flask application
-├── main.py                         # Runs full training pipeline
+├── app.py
+├── main.py
 ├── Dockerfile
 └── requirements.txt
-
----
+```
 
 ## Setup and Usage
 
