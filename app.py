@@ -11,8 +11,6 @@ from src.exception import CustomException
 
 load_dotenv()
 
-print("NASA KEY:", os.getenv("NASA_API_KEY"))
-
 app = Flask(__name__)
 NASA_API_KEY = os.getenv("NASA_API_KEY")
 
