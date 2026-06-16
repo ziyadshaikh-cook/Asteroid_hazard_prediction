@@ -1,27 +1,22 @@
 # Asteroid Hazard Prediction
 
-An end-to-end machine learning project that predicts whether a near-Earth asteroid is potentially hazardous to Earth, using real orbital and physical measurements from NASA's live NeoWs API.
+A production-deployed machine learning application that predicts whether near-Earth asteroids are potentially hazardous, using live orbital data from NASA's NeoWs API.
 
----
-
-## Live Demo
-
-Enter a date range → the app fetches real asteroids from NASA's database → the ML model predicts which ones are potentially hazardous.
+**Live Demo:** [asteroid-hazard-prediction.onrender.com](https://asteroid-hazard-prediction.onrender.com/)
 
 ---
 
 ## Project Overview
 
-| Item | Detail |
-|---|---|
-| Problem Type | Binary Classification |
-| Target | `is_hazardous` — True / False |
-| Dataset | NASA Nearest Earth Objects 1910–2024 (~338,000 records) |
-| Best Model | Random Forest (F1: 0.66, Recall: 0.72, Precision: 0.61) |
-| Data Source (Training) | Kaggle — NASA Nearest Earth Objects |
-| Data Source (Inference) | NASA NeoWs REST API (live) |
+Most ML projects train and predict on the same static dataset. This project separates training from inference:
+
+- **Training:** Historical Kaggle CSV — 338,000 asteroid records (1910–2024)
+- **Inference:** NASA NeoWs REST API — the Flask app fetches real asteroids for any date range the user enters and runs live predictions
+
+The model classifies asteroids as `HAZARDOUS` or `SAFE` based on four physical and orbital features. The primary challenge is class imbalance: 87.2% of asteroids are not hazardous, making accuracy a misleading metric. F1-score on the hazardous class is the primary evaluation metric.
 
 ---
+
 ## Screenshots
 
 ### Home Page
@@ -30,46 +25,20 @@ Enter a date range → the app fetches real asteroids from NASA's database → t
 ### Prediction Results
 ![Results](assets/results.png)
 
-## What Makes This Project Different
+---
 
-Most ML projects train and predict on the same static dataset. This project separates training from inference:
+## Key Features
 
-- **Training:** Historical Kaggle CSV (338,000 asteroid records, 1910–2024)
-- **Inference:** Live NASA NeoWs API — the Flask app fetches real asteroids for any date range the user enters and runs predictions on fresh data in real time
+- Live NASA API integration — predictions on real, current asteroid data
+- End-to-end ML pipeline: ingestion, transformation, SMOTE oversampling, training, and inference
+- Experiment tracking with MLflow on DagsHub
+- Data drift monitoring with Evidently
+- Model artifacts stored and versioned on Hugging Face Hub
+- Containerized with Docker and deployed on Render
 
 ---
 
-## Project Architecture
-User enters date range
-↓
-Flask app calls NASA NeoWs API
-↓
-JSON response parsed → DataFrame
-↓
-Preprocessor (RobustScaler) transforms features
-↓
-Random Forest model predicts hazard status
-↓
-Results displayed with hazard probability scores
-
----
-
-## ML Pipeline
-
-### Problem
-Predict whether an asteroid is potentially hazardous based on 4 features:
-- `absolute_magnitude` — brightness (lower = larger)
-- `estimated_diameter_max` — maximum estimated size in km
-- `relative_velocity` — speed relative to Earth in km/h
-- `miss_distance` — closest approach distance in km
-
-### Class Imbalance
-87.2% not hazardous / 12.8% hazardous — handled with SMOTE on train set only.
-
-### Why Accuracy is Not Used
-A model that always predicts "not hazardous" gets 87% accuracy. That model is useless. Primary metric is F1-score and Recall on the hazardous class.
-
-### Model Selection
+## Model Performance
 
 | Model | F1 (Hazardous) | Recall | Precision |
 |---|---|---|---|
@@ -79,7 +48,9 @@ A model that always predicts "not hazardous" gets 87% accuracy. That model is us
 | XGBoost | 0.4878 | 0.9870 | 0.3239 |
 | CatBoost | 0.5000 | 0.9588 | 0.3382 |
 
-Random Forest was selected — only model with Precision above 0.60, meaning it actually discriminates between classes rather than flagging everything as hazardous.
+Random Forest was selected — it is the only model where Precision exceeded 0.60, meaning it actually discriminates between classes rather than flagging most asteroids as hazardous.
+
+> **Deployment note:** The production model on Render runs with `n_estimators=10` (reduced from 100) to fit within the 512MB RAM constraint on the free tier. This brings F1 down from 0.6606 to 0.6466. To reproduce the full model, retrain locally using `main.py` — no code changes required.
 
 ---
 
@@ -87,14 +58,16 @@ Random Forest was selected — only model with Precision above 0.60, meaning it 
 
 | Layer | Tool |
 |---|---|
-| ML | Scikit-learn, XGBoost, CatBoost |
+| ML | Scikit-learn |
 | Data | Pandas, NumPy |
 | Imbalance Handling | imbalanced-learn (SMOTE) |
 | Experiment Tracking | MLflow + DagsHub |
-| API Integration | requests (NASA NeoWs REST API) |
+| API Integration | NASA NeoWs REST API |
 | Monitoring | Evidently |
 | Web App | Flask |
+| Model Storage | Hugging Face Hub |
 | Containerization | Docker |
+| Deployment | Render |
 
 ---
 
@@ -121,21 +94,35 @@ asteroid_hazard_prediction/
 ├── templates/
 │   ├── index.html
 │   └── results.html
+├── assets/
+│   ├── home.png
+│   └── results.png
 ├── app.py
 ├── main.py
 ├── Dockerfile
-└── requirements.txt
+├── requirements.txt          # Full dependencies — use this for local development and training
+└── requirements-prod.txt     # Slim dependencies — used by Docker for production only
 ```
 
-## Setup and Usage
+---
+
+## Installation
+
+### Prerequisites
+
+- Python 3.10
+- A free NASA API key from [api.nasa.gov](https://api.nasa.gov)
+- A DagsHub account for MLflow experiment tracking
 
 ### 1. Clone the repository
+
 ```bash
 git clone https://github.com/ziyadshaikh-cook/Asteroid_hazard_prediction.git
 cd Asteroid_hazard_prediction
 ```
 
 ### 2. Create environment
+
 ```bash
 conda create -p venv python=3.10 -y
 conda activate ./venv
@@ -143,25 +130,39 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
+> Use `requirements.txt` for local development and training. The file `requirements-prod.txt` is only used by Docker during deployment — do not use it for local setup.
+
 ### 3. Set up environment variables
-Create a `.env` file at the root:
+
+Create a `.env` file at the root of the project:
+
+```
 NASA_API_KEY=your_nasa_api_key
 DAGSHUB_TOKEN=your_dagshub_token
-Get a free NASA API key at: https://api.nasa.gov
+```
+
+Get a free NASA API key at [api.nasa.gov](https://api.nasa.gov). One key works across all NASA APIs.
 
 ### 4. Download the dataset
+
 Download from Kaggle: [NASA Nearest Earth Objects 1910-2024](https://www.kaggle.com/datasets/ivansher/nasa-nearest-earth-objects-1910-2024)
-Place it as `data/raw.csv`
+
+Place it at `data/raw.csv`.
 
 ### 5. Run the training pipeline
+
 ```bash
 python main.py
 ```
 
+This runs data ingestion, transformation, SMOTE, and model training. The trained model and preprocessor are saved to `artifacts/`.
+
 ### 6. Run the Flask app
+
 ```bash
 python app.py
 ```
+
 Open `http://localhost:5000`
 
 ---
@@ -170,25 +171,58 @@ Open `http://localhost:5000`
 
 ```bash
 docker build -t asteroid-hazard .
-docker run -e NASA_API_KEY=your_key -e DAGSHUB_TOKEN=your_token -p 5000:5000 asteroid-hazard
+docker run -e NASA_API_KEY=your_key -p 5000:5000 asteroid-hazard
 ```
 
 ---
 
-## Experiment Tracking
+## Usage
 
-All model runs are logged to DagsHub:
-https://dagshub.com/ziyadshaikh-cook/Asteroid_hazard_prediction.mlflow
+1. Open the app at the live URL or locally at `http://localhost:5000`
+2. Enter a start date and end date — keep the range within 7 days (NASA API hard limit)
+3. The app fetches real asteroid data from NASA's NeoWs API for that date range
+4. The model classifies each asteroid as `HAZARDOUS` or `SAFE` with a probability score
 
 ---
 
 ## Key Design Decisions
 
 **Why RobustScaler over StandardScaler?**
-Diameter and velocity features are heavily right-skewed with outliers. RobustScaler uses median and IQR instead of mean and std, making it more resistant to outliers.
+Diameter and velocity features are heavily right-skewed with outliers. RobustScaler uses median and IQR instead of mean and standard deviation, making it more resistant to extreme values.
 
 **Why SMOTE after scaling?**
-SMOTE creates synthetic points by interpolating between existing ones. Interpolating in the unscaled space produces synthetic points in the wrong distribution. Scale first, then SMOTE.
+SMOTE generates synthetic minority-class samples by interpolating between existing points. Applying it before scaling would interpolate in the wrong feature space and distort the synthetic samples. Scale first, then SMOTE.
 
-**Why not use the live API for training?**
-The NASA API returns a maximum 7-day window per call. Collecting 338,000 records would require hundreds of API calls over hours. The Kaggle CSV is the same data pre-collected — use it for training, use the live API for inference.
+**Why not use the live NASA API for training?**
+The API returns a maximum 7-day window per call. Collecting 338,000 records would require hundreds of calls over hours. The Kaggle CSV is the same data pre-collected — used for training, the live API is used only for inference.
+
+---
+
+## Experiment Tracking
+
+All model runs are logged to DagsHub:
+[dagshub.com/ziyadshaikh-cook/Asteroid_hazard_prediction.mlflow](https://dagshub.com/ziyadshaikh-cook/Asteroid_hazard_prediction.mlflow)
+
+---
+
+## Future Enhancements
+
+- Upgrade to a paid Render tier to deploy the full 100-estimator model and restore F1 to 0.66
+- Add frontend date validation to enforce the 7-day NASA API limit before form submission
+- Extend the feature set using additional orbital parameters available from the NASA API
+- Automate retraining when data drift is detected by the Evidently monitoring pipeline
+
+---
+
+## License
+
+MIT License
+
+---
+
+## Acknowledgements
+
+- [NASA NeoWs API](https://api.nasa.gov/) for live near-Earth object data
+- [Kaggle — NASA Nearest Earth Objects 1910-2024](https://www.kaggle.com/datasets/ivansher/nasa-nearest-earth-objects-1910-2024) for the training dataset
+- [DagsHub](https://dagshub.com/) for MLflow experiment tracking
+- [Hugging Face Hub](https://huggingface.co/) for model artifact storage
